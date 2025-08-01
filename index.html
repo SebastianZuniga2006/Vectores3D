@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Código en Python del cálculo del rotacional de una fuerza y de la proyección de vectores</title>
+
+  <!-- Estilos Prism.js para el código -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  <style>
+    body { 
+      font-family: sans-serif; 
+      background-color: #1e1e1e; 
+      color: #fff; 
+      padding: 20px;
+    }
+    h1, h2 { color: #ffcc00; }
+    .btn-colab {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #f9ab00;
+      color: #000;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    .btn-colab:hover { background-color: #ffc533; }
+    iframe {
+      border: 2px solid #555; 
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Código Python</h1>
+  <p>Cálculo del rotacional de una fuerza y de la proyección de vectores:</p>
+
+  <!-- Código Python con Prism.js -->
+  <pre><code class="language-python">
+import numpy as np
+import matplotlib.pyplot as plt
+from sympy import symbols, sympify, lambdify, diff, pprint
+from sympy.vector import CoordSys3D
+
+# ======= Funciones vectoriales =======
+def producto_cruz(v1, v2):
+    return np.cross(v1, v2)
+
+def proyeccion(v1, v2):
+    if np.linalg.norm(v2) == 0:
+        raise ValueError("El vector v2 no puede ser el vector nulo.")
+    v2_unit = v2 / np.linalg.norm(v2)
+    return np.dot(v1, v2_unit) * v2_unit
+
+def calcular_rotacional_simb(Fx_expr, Fy_expr, Fz_expr):
+    x, y, z = symbols('x y z')
+    try:
+        Fx = sympify(Fx_expr)
+        Fy = sympify(Fy_expr)
+        Fz = sympify(Fz_expr)
+    except Exception as e:
+        print("❌ Error al interpretar las funciones:", e)
+        return None, None
+
+    try:
+        # Derivadas parciales para el rotacional
+        rot_x = diff(Fz, y) - diff(Fy, z)
+        rot_y = -(diff(Fz, x) - diff(Fx, z))
+        rot_z = diff(Fy, x) - diff(Fx, y)
+
+        # Sistema coordenadas para mostrar resultado vectorial
+        N = CoordSys3D('N')
+        rot = rot_x * N.i + rot_y * N.j + rot_z * N.k
+        F = Fx * N.i + Fy * N.j + Fz * N.k
+
+        return rot, F
+    except Exception as e:
+        print("❌ Error al calcular el rotacional:", e)
+        return None, None
+
+# ======= Visualización =======
+def graficar_vectores(v1, v2, proy, cruz, guardar=False):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    def dibujar(v, color, label):
+        ax.quiver(0, 0, 0, v[0], v[1], v[2], color=color, label=label)
+
+    dibujar(v1, 'blue', 'v1')
+    dibujar(v2, 'green', 'v2')
+    dibujar(proy, 'orange', 'Proyección')
+    dibujar(cruz, 'red', 'Producto cruz')
+
+    ax.set_xlim([-5, 5])
+    ax.set_ylim([-5, 5])
+    ax.set_zlim([-5, 5])
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    ax.legend()
+    plt.title("Vectores en 3D")
+
+    if guardar:
+        plt.savefig("vectores_3d.png")
+        print("→ Gráfico de vectores guardado como vectores_3d.png")
+    plt.show()
+
+def graficar_rotacional(rot, guardar=False, dominio=None):
+    if rot is None:
+        print("❌ No se puede graficar el rotacional porque no fue calculado correctamente.")
+        return
+
+    if dominio is None:
+        dominio = np.linspace(-2, 2, 8)
+    N = CoordSys3D('N')
+    fx = lambdify((symbols('x'), symbols('y'), symbols('z')), rot.dot(N.i), 'numpy')
+    fy = lambdify((symbols('x'), symbols('y'), symbols('z')), rot.dot(N.j), 'numpy')
+    fz = lambdify((symbols('x'), symbols('y'), symbols('z')), rot.dot(N.k), 'numpy')
+
+    X, Y, Z = np.meshgrid(dominio, dominio, dominio)
+    U = fx(X, Y, Z)
+    V = fy(X, Y, Z)
+    W = fz(X, Y, Z)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.quiver(X, Y, Z, U, V, W, length=0.3)
+    ax.set_title("Campo del rotacional")
+
+    if guardar:
+        plt.savefig("rotacional_3d.png")
+        print("→ Gráfico del rotacional guardado como rotacional_3d.png")
+    plt.show()
+
+# ======= Entrada de usuario =======
+def leer_vector(nombre):
+    entrada = input(f"Ingrese las componentes del vector {nombre} separadas por comas (ejemplo: 1,2,3): ")
+    return np.array([float(num) for num in entrada.strip().split(',')])
+
+def leer_campo_vectorial():
+    print("\nIngrese las funciones del campo vectorial F(x, y, z):")
+    Fx = input("F_x(x, y, z) = ")
+    Fy = input("F_y(x, y, z) = ")
+    Fz = input("F_z(x, y, z) = ")
+    return Fx, Fy, Fz
+
+# ======= Guardar resultados =======
+def guardar_resultados_txt(v1, v2, cruz, proy, Fx, Fy, Fz, rotacional):
+    with open("resultados_vectoriales.txt", "w", encoding="utf-8") as f:
+        f.write("===== Resultados Vectoriales =====\n\n")
+        f.write(f"Vector v1: {v1.tolist()}\n")
+        f.write(f"Vector v2: {v2.tolist()}\n\n")
+        f.write(f"Producto cruz v1 x v2: {cruz.tolist()}\n")
+        f.write(f"Proyección de v1 sobre v2: {proy.tolist()}\n\n")
+        f.write(f"Campo vectorial F(x,y,z) = <{Fx}, {Fy}, {Fz}>\n")
+        f.write(f"Rotacional simbólico: {rotacional}\n")
+    print("→ Resultados guardados en resultados_vectoriales.txt")
+
+# ========== MAIN ==========
+if __name__ == "__main__":
+    try:
+        print("===== Cálculo de vectores en 3D =====")
+        v1 = leer_vector("v1")
+        v2 = leer_vector("v2")
+
+        cruz = producto_cruz(v1, v2)
+        proy = proyeccion(v1, v2)
+
+        print("\nProducto cruz v1 x v2:", cruz)
+        print("Proyección de v1 sobre v2:", proy)
+
+        Fx_expr, Fy_expr, Fz_expr = leer_campo_vectorial()
+        rotacional, campo = calcular_rotacional_simb(Fx_expr, Fy_expr, Fz_expr)
+
+        if rotacional is not None:
+            print("\nRotacional del campo F:")
+            pprint(rotacional)
+            guardar_resultados_txt(v1, v2, cruz, proy, Fx_expr, Fy_expr, Fz_expr, rotacional)
+            graficar_vectores(v1, v2, proy, cruz, guardar=True)
+            graficar_rotacional(rotacional, guardar=True)
+        else:
+            print("❌ El rotacional no pudo ser calculado. Verifica las funciones ingresadas.")
+
+    except Exception as e:
+        import traceback
+        with open("error_log.txt", "w", encoding="utf-8") as f:
+            f.write(traceback.format_exc())
+        input(f"\n❌ Ocurrió un error inesperado: {e}\nRevisa 'error_log.txt'. Pulsa Enter para salir.")
+		</code></pre>
+
+  <!-- Botón para abrir en Google Colab -->
+  <h2>Ejecuta este código en Google Colab:</h2>
+  <a class="btn-colab" href="https://colab.research.google.com/drive/1BAgmGbmee-CxyyKYofN_IyAhj4hMM4Nl?usp=sharing" target="_blank">
+    🔗 Abrir en Google Colab
+  </a>
+
+  <!-- Consola interactiva de Replit -->
+  <h2>Prueba el código aquí mismo (Replit):</h2>
+  <iframe 
+    height="500px" 
+    width="100%" 
+    src="https://replit.com/@replit/Python3?lite=true" 
+    frameborder="0" 
+    allowfullscreen>
+  </iframe>
+
+  <!-- Scripts para Prism.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+L
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
