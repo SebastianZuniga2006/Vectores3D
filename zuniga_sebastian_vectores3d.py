@@ -32,7 +32,7 @@ Fy_expr = st.sidebar.text_input("Fᵧ(x, y, z)", "z*x")
 Fz_expr = st.sidebar.text_input("F_z(x, y, z)", "x*y")
 
 # === Densidad de malla para el campo rotacional ===
-densidad = st.sidebar.slider("Densidad del campo (puntos por eje)", 3, 10, 5)
+densidad = st.sidebar.slider("Densidad del campo (puntos por eje)", 3, 15, 7)
 
 if st.sidebar.button("Calcular"):
     try:
@@ -110,7 +110,8 @@ if st.sidebar.button("Calcular"):
 
         fig2 = plt.figure()
         ax2 = fig2.add_subplot(111, projection='3d')
-        ax2.quiver(X, Y, Z, U, V, W, length=0.3, normalize=True, color='purple')
+        U, V, W = 2*U, 2*V, 2*W 
+        ax2.quiver(X, Y, Z, U, V, W, length=0.5, normalize=False, color='purple')
         ax2.set_title("Campo vectorial del rotacional")
         ax2.set_xlim([-2, 2])
         ax2.set_ylim([-2, 2])
