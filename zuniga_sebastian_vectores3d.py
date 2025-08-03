@@ -152,11 +152,11 @@ if st.sidebar.button("Calcular"):
         # --- Opción para descargar gráfico como imagen ---
         buffer = BytesIO()
         fig1.savefig(buffer, format="png")
-        st.download_button("📥 Descargar imagen de vectores", buffer.getvalue(), "vectores.png", mime="image/png")
+        st.download_button("📥 Descargar imagen de vectores", buffer.getvalue(), "vectores.png", mime="image/png", key = None, help = None, on_click = "ignore", icon = "😁")
 
         buffer2 = BytesIO()
         fig2.savefig(buffer2, format="png")
-        st.download_button("📥 Descargar imagen del rotacional", buffer2.getvalue(), "rotacional.png", mime="image/png")
+        st.download_button("📥 Descargar imagen del rotacional", buffer2.getvalue(), "rotacional.png", mime="image/png", key = None, help = None, on_click = "ignore", icon = "😁")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
