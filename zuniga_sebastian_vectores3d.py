@@ -43,10 +43,18 @@ if st.sidebar.button("Calcular"):
         except:
             st.error("❌ Error al interpretar el vector. Usa el formato (1,2,3)")
             return None 
-    def show_vector (name, v_str):
-        coords = ',\ '.join(f"{x:.4f}" for x in v_str)
-        st.latex(rf"\vec{{{name}}} = \left({coords}\right)")
-        return None
+    def show_vector (name, v, subscript  = None, use_text = False):
+        coords = ',\ '.join(f"{x:.4f}" for x in v)
+
+        if subscript:
+            if use_text:
+                vector_name = rf"\vec{{{name}_{{\text{{{subscript}}}}}}}"
+            else:
+                vector_name = rf"\vec{{{name}_{{{subscript}}}}}"
+        else:
+            vector_name = rf"\vec{{{name}}}"
+        
+        st.latex(rf"{vector_name} = \left({coords}\right)")
     try:
         # --- Conversión de vectores ---
         vector1 = parse_vector_parenthesis(v1_input)    
@@ -72,11 +80,11 @@ if st.sidebar.button("Calcular"):
         if vector1 is not None and vector2 is not None:
             st.subheader("🧮 Resultados")
             st.write("Vector 1: ")
-            show_vector("v_1",vector1)
+            show_vector("v_1",vector1, subscript = "1")
             st.write("Vector 2: ")
-            show_vector("v_2", vector2)
+            show_vector("v_2", vector2, subscript= "2")
             st.write("Proyección: ")
-            show_vector("v_1_(v_2)", proy)
+            show_vector("v_1_(v_2)", proy, subscript= "1_{v_2}")
             st.write("Producto cruz: ")
             show_vector("v_1 × v_2", cruz)
 
@@ -96,21 +104,21 @@ if st.sidebar.button("Calcular"):
         def dibujar_vector(v, color, label):
             ax1.quiver(0, 0, 0, v[0], v[1], v[2], color=color, label=label)
 
-            dibujar_vector(vector1, 'blue', 'v1')
-            dibujar_vector(vector2, 'green', 'v2')
-            dibujar_vector(cruz, 'red', 'v1 × v2')
-            dibujar_vector(proy, 'orange', 'Proy. de v1 sobre v2')
+        dibujar_vector(vector1, 'blue', 'v1')
+        dibujar_vector(vector2, 'green', 'v2')
+        dibujar_vector(cruz, 'red', 'v1 × v2')
+        dibujar_vector(proy, 'orange', 'Proy. de v1 sobre v2')
 
-            ax1.set_xlim([-5, 5])
-            ax1.set_ylim([-5, 5])
-            ax1.set_zlim([-5, 5])
-            ax1.set_xlabel("X")
-            ax1.set_ylabel("Y")
-            ax1.set_zlabel("Z")
-            ax1.set_title("Vectores en 3D")
-            ax1.legend()
+        ax1.set_xlim([-5, 5])
+        ax1.set_ylim([-5, 5])
+        ax1.set_zlim([-5, 5])
+        ax1.set_xlabel("X")
+        ax1.set_ylabel("Y")
+        ax1.set_zlabel("Z")
+        ax1.set_title("Vectores en 3D")
+        ax1.legend()
 
-            st.pyplot(fig1)
+        st.pyplot(fig1)
 
         # --- Gráfico del campo del rotacional ---
         st.subheader("🌐 Visualización del campo del rotacional")
