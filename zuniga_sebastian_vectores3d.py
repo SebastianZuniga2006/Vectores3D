@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit as st # type: ignore
 import numpy as np
 import matplotlib.pyplot as plt
 from sympy import symbols, sympify, diff, lambdify
@@ -22,8 +22,8 @@ Esta aplicación permite:
 st.sidebar.header("📥 Ingreso de datos")
 
 # === Entrada de vectores ===
-v1_input = st.sidebar.text_input("Vector v1 (ej: 1,2,3)", value="1,2,3")
-v2_input = st.sidebar.text_input("Vector v2 (ej: 2,0,-1)", value="2,0,-1")
+v1_input = st.sidebar.text_input("Vector v1 (ej: (1,2,3))", value="(1,2,3)")
+v2_input = st.sidebar.text_input("Vector v2 (ej: (2,0,-1))", value="(2,0,-1)")
 
 # === Campo vectorial ===
 st.sidebar.subheader("Campo vectorial F(x, y, z)")
@@ -35,15 +35,27 @@ Fz_expr = st.sidebar.text_input("F_z(x, y, z)", "x*y")
 densidad = st.sidebar.slider("Densidad del campo (puntos por eje)", 3, 15, 7)
 
 if st.sidebar.button("Calcular"):
+    def parse_vector_parenthesis (v_str):
+        try:
+            v_str = v_str.strip("() ")
+            vector = np.array([float(x) for x in v_str.split(",")])
+            return vector
+        except:
+            st.error("❌ Error al interpretar el vector. Usa el formato (1,2,3)")
+            return None 
+    def show_vector (name, v_str):
+        coords = ',\ '.join(f"{x:.4f}" for x in v_str)
+        st.latex(rf"\vec{{{name}}} = \left({coords}\right)")
+        return None
     try:
         # --- Conversión de vectores ---
-        v1 = np.array([float(x.strip()) for x in v1_input.split(",")])
-        v2 = np.array([float(x.strip()) for x in v2_input.split(",")])
-        cruz = np.cross(v1, v2)
+        vector1 = parse_vector_parenthesis(v1_input)    
+        vector2 = parse_vector_parenthesis(v2_input)  
+        cruz = np.cross(vector1, vector2)
 
-        if np.linalg.norm(v2) == 0:
-            raise ValueError("El vector v2 no puede ser nulo para proyectar.")
-        proy = (np.dot(v1, v2) / np.linalg.norm(v2)**2) * v2
+        if np.linalg.norm(vector2) == 0:
+            raise ValueError("El vector 2 no puede ser nulo para proyectar.")
+        proy = (np.dot(vector1, vector2) / np.linalg.norm(vector2)**2) * vector2
 
         # --- Campo vectorial simbólico ---
         x, y, z = symbols('x y z')
@@ -57,11 +69,17 @@ if st.sidebar.button("Calcular"):
         rot_z = diff(Fy, x) - diff(Fx, y)
 
         # --- Mostrar resultados ---
-        st.subheader("🧮 Resultados")
-        st.write(f"**v1:** {v1}")
-        st.write(f"**v2:** {v2}")
-        st.write(f"**Producto cruz v1 × v2:** {cruz}")
-        st.write(f"**Proyección de v1 sobre v2:** {proy}")
+        if vector1 is not None and vector2 is not None:
+            st.subheader("🧮 Resultados")
+            st.write("Vector 1: ")
+            show_vector("v_1",vector1)
+            st.write("Vector 2: ")
+            show_vector("v_2", vector2)
+            st.write("Proyección: ")
+            show_vector("v_1_(v_2)", proy)
+            st.write("Producto cruz: ")
+            show_vector("v_1 × v_2", cruz)
+
         st.markdown(f"""
         **Campo vectorial**:  
         $\\vec{{F}}(x, y, z) = \\langle {Fx_expr},\ {Fy_expr},\ {Fz_expr} \\rangle$
@@ -78,21 +96,21 @@ if st.sidebar.button("Calcular"):
         def dibujar_vector(v, color, label):
             ax1.quiver(0, 0, 0, v[0], v[1], v[2], color=color, label=label)
 
-        dibujar_vector(v1, 'blue', 'v1')
-        dibujar_vector(v2, 'green', 'v2')
-        dibujar_vector(cruz, 'red', 'v1 × v2')
-        dibujar_vector(proy, 'orange', 'Proy. de v1 sobre v2')
+            dibujar_vector(vector1, 'blue', 'v1')
+            dibujar_vector(vector2, 'green', 'v2')
+            dibujar_vector(cruz, 'red', 'v1 × v2')
+            dibujar_vector(proy, 'orange', 'Proy. de v1 sobre v2')
 
-        ax1.set_xlim([-5, 5])
-        ax1.set_ylim([-5, 5])
-        ax1.set_zlim([-5, 5])
-        ax1.set_xlabel("X")
-        ax1.set_ylabel("Y")
-        ax1.set_zlabel("Z")
-        ax1.set_title("Vectores en 3D")
-        ax1.legend()
+            ax1.set_xlim([-5, 5])
+            ax1.set_ylim([-5, 5])
+            ax1.set_zlim([-5, 5])
+            ax1.set_xlabel("X")
+            ax1.set_ylabel("Y")
+            ax1.set_zlabel("Z")
+            ax1.set_title("Vectores en 3D")
+            ax1.legend()
 
-        st.pyplot(fig1)
+            st.pyplot(fig1)
 
         # --- Gráfico del campo del rotacional ---
         st.subheader("🌐 Visualización del campo del rotacional")
