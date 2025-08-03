@@ -80,13 +80,14 @@ if st.sidebar.button("Calcular"):
         if vector1 is not None and vector2 is not None:
             st.subheader("🧮 Resultados")
             st.write("Vector 1: ")
-            show_vector("v_1",vector1, subscript = "1")
+            show_vector("v",vector1, subscript = "1")
             st.write("Vector 2: ")
-            show_vector("v_2", vector2, subscript= "2")
+            show_vector("v", vector2, subscript= "2")
             st.write("Proyección: ")
-            show_vector("v_1_(v_2)", proy, subscript= "1_{v_2}")
+            show_vector("v", proy, subscript= "1_{v_2}")
             st.write("Producto cruz: ")
-            show_vector("v_1 × v_2", cruz)
+            coords = ',\ '.join(f"{x:.4f}" for x in cruz)
+            st.latex(r"\vec{v}_1 \times \vec{v}_2 = \left(" + coords + r"\right)")
 
         st.markdown(f"""
         **Campo vectorial**:  
