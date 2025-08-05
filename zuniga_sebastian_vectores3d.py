@@ -57,10 +57,9 @@ if st.sidebar.button("Calcular"):
             for expr in componentes:
                 expr = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expr)
                 expr = re.sub(r'([a-zA-Z])([a-zA-Z])', r'\1*\2', expr)
-                sympify(expr)
-                componentes_finales.append(expr)
-
+                componentes_finales.append(sympify(expr))
             return componentes_finales
+        
         except:
             st.error("❌ Error al interpretar el vector. Usa el formato: 2x, -y, z")
             return None
