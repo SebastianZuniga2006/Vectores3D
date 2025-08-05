@@ -63,7 +63,7 @@ if st.sidebar.button("Calcular"):
             st.error("❌ Error al interpretar el vector. Usa el formato: 2x, -y, z")
             return None
     def show_vector (name, v, subscript  = None, use_text = False):
-        coords = ',\ '.join(f"{x:.4f}" for x in v)
+        coords = ',\ '.join(f"{x:.2f}" for x in v)
 
         if subscript:
             if use_text:
@@ -87,9 +87,16 @@ if st.sidebar.button("Calcular"):
 
         # --- Campo vectorial simbólico ---
         x, y, z = symbols('x y z')
-        Fx = parse_vector_rot(sympify(Fx_expr))
-        Fy = parse_vector_rot(sympify(Fy_expr))
-        Fz = parse_vector_rot(sympify(Fz_expr))
+
+        vector_expr = f"{Fx_expr},{Fy_expr},{Fz_expr}"
+        vector_components = parse_vector_rot(vector_expr)
+
+        if not vector_components:
+            st.stop()
+
+        Fx = sympify(vector_components[0])
+        Fy = sympify(vector_components[1])
+        Fz = sympify(vector_components[2])
 
         # --- Rotacional ---
         rot_x = diff(Fz, y) - diff(Fy, z)
@@ -106,7 +113,7 @@ if st.sidebar.button("Calcular"):
             st.write("Proyección: ")
             show_vector("v", proy, subscript= "1_{v_2}")
             st.write("Producto cruz: ")
-            coords = ',\ '.join(f"{x:.4f}" for x in cruz)
+            coords = ',\ '.join(f"{x:.2f}" for x in cruz)
             st.latex(r"\vec{v}_1 \times \vec{v}_2 = \left(" + coords + r"\right)")
 
         st.markdown(f"""
@@ -172,11 +179,11 @@ if st.sidebar.button("Calcular"):
         # --- Opción para descargar gráfico como imagen ---
         buffer = BytesIO()
         fig1.savefig(buffer, format="png")
-        st.download_button("📥 Descargar imagen de vectores", buffer.getvalue(), "vectores.png", mime="image/png", key = None, help = None, on_click = "ignore", icon = "😁")
+        st.download_button("📥 Descargar imagen de vectores", buffer.getvalue(), "vectores.png", mime="image/png", key = "vectores", help = None, on_click = "ignore", icon = "😁")
 
         buffer2 = BytesIO()
         fig2.savefig(buffer2, format="png")
-        st.download_button("📥 Descargar imagen del rotacional", buffer2.getvalue(), "rotacional.png", mime="image/png", key = None, help = None, on_click = "ignore", icon = "😁")
+        st.download_button("📥 Descargar imagen del rotacional", buffer2.getvalue(), "rotacional.png", mime="image/png", key = "rotacional", help = None, on_click = "ignore", icon = "😁")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
