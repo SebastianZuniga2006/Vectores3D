@@ -6,9 +6,9 @@ from sympy import symbols, sympify, diff, lambdify
 from sympy.vector import CoordSys3D
 from io import BytesIO
 
-st.set_page_config(page_title="Rotacional y Vectores en 3D", layout="wide")
+st.set_page_config(page_title="Rotacional y Vectores en 3 dimensiones", layout="wide")
 
-st.title("Cálculo del Rotacional y Vectores en 3D")
+st.title("Operaciones con vectores en 3 dimensiones y cálculo del rotacional de un campo vectorial")
 
 st.markdown("""
 Esta aplicación permite:
