@@ -56,7 +56,8 @@ if st.sidebar.button("Calcular"):
             for expr in componentes:
                 expr = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expr)
                 expr = re.sub(r'([a-zA-Z])([a-zA-Z])', r'\1*\2', expr)
-                componentes_finales.append(sympify(expr, evaluate = True))
+                expr_sympy = sympify(expr)
+                componentes_finales.append(expr_sympy)
             return componentes_finales
         
         except:
@@ -148,6 +149,11 @@ if st.sidebar.button("Calcular"):
 
         # --- Gráfico del campo del rotacional ---
         st.subheader("🌐 Visualización del campo del rotacional")
+        if not all([rot_x.free_symbols <= {x, y, z},
+            rot_y.free_symbols <= {x, y, z},
+            rot_z.free_symbols <= {x, y, z}]):
+            st.error("❌ El rotacional contiene símbolos no válidos. Verifica que usaste solo x, y, z.")
+            st.stop()
 
         N = CoordSys3D('N')
         fx = lambdify((x, y, z), rot_x, 'numpy')
