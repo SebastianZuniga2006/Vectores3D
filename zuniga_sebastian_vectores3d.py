@@ -1,3 +1,4 @@
+import re
 import streamlit as st # type: ignore
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,9 +28,9 @@ v2_input = st.sidebar.text_input("Vector v2 (ej: (2,0,-1))", value="(2,0,-1)")
 
 # === Campo vectorial ===
 st.sidebar.subheader("Campo vectorial F(x, y, z)")
-Fx_expr = st.sidebar.text_input("Fₓ(x, y, z)", "y*z")
-Fy_expr = st.sidebar.text_input("Fᵧ(x, y, z)", "z*x")
-Fz_expr = st.sidebar.text_input("F_z(x, y, z)", "x*y")
+Fx_expr = st.sidebar.text_input("Fₓ(x, y, z)", "2x")
+Fy_expr = st.sidebar.text_input("Fᵧ(x, y, z)", "-y")
+Fz_expr = st.sidebar.text_input("F_z(x, y, z)", "z")
 
 # === Densidad de malla para el campo rotacional ===
 densidad = st.sidebar.slider("Densidad del campo (puntos por eje)", 3, 15, 7)
@@ -43,6 +44,24 @@ if st.sidebar.button("Calcular"):
         except:
             st.error("❌ Error al interpretar el vector. Usa el formato (1,2,3)")
             return None 
+    def parse_vector_rot (v_str):
+        try:
+            v_str = v_str.replace("*","").replace(" ","")
+            componentes = v_str.split(",")
+
+            if len(componentes) != 3:
+                raise ValueError ("Debe ingresar exactamente 3 componentes separadas por comas.")
+            
+            componentes_finales = []
+            for expr in componentes:
+                expr = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expr)
+                expr = re.sub(r'([a-zA-Z])([a-zA-Z])', r'\1*\2', expr)
+                componentes_finales.append(expr)
+
+            return componentes_finales
+        except:
+            st.error("❌ Error al interpretar el vector. Usa el formato: 2x, -y, z")
+            return None
     def show_vector (name, v, subscript  = None, use_text = False):
         coords = ',\ '.join(f"{x:.4f}" for x in v)
 
@@ -55,6 +74,7 @@ if st.sidebar.button("Calcular"):
             vector_name = rf"\vec{{{name}}}"
         
         st.latex(rf"{vector_name} = \left({coords}\right)")
+    
     try:
         # --- Conversión de vectores ---
         vector1 = parse_vector_parenthesis(v1_input)    
@@ -67,9 +87,9 @@ if st.sidebar.button("Calcular"):
 
         # --- Campo vectorial simbólico ---
         x, y, z = symbols('x y z')
-        Fx = sympify(Fx_expr)
-        Fy = sympify(Fy_expr)
-        Fz = sympify(Fz_expr)
+        Fx = parse_vector_rot(sympify(Fx_expr))
+        Fy = parse_vector_rot(sympify(Fy_expr))
+        Fz = parse_vector_rot(sympify(Fz_expr))
 
         # --- Rotacional ---
         rot_x = diff(Fz, y) - diff(Fy, z)
