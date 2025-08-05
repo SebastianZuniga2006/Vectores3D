@@ -46,8 +46,7 @@ if st.sidebar.button("Calcular"):
             return None 
     def parse_vector_rot (v_str):
         try:
-            v_str = v_str.replace("*","").replace(" ","")
-            v_str = v_str.replace("^","**")
+            v_str = v_str.replace("^","**").replace("*","").replace(" ","")
             componentes = v_str.split(",")
 
             if len(componentes) != 3:
@@ -57,7 +56,7 @@ if st.sidebar.button("Calcular"):
             for expr in componentes:
                 expr = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expr)
                 expr = re.sub(r'([a-zA-Z])([a-zA-Z])', r'\1*\2', expr)
-                componentes_finales.append(sympify(expr))
+                componentes_finales.append(sympify(expr, evaluate = True))
             return componentes_finales
         
         except:
